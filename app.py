@@ -5,6 +5,10 @@ import subprocess
 import threading
 import time
 from datetime import datetime
+from dotenv import load_dotenv
+
+# 加载.env文件中的环境变量
+load_dotenv()
 from data_scraper import get_hot_topics
 from idea_generator import make_ideas, make_idea
 from image_generator import create_stickers, create_line_stickers
