@@ -12,7 +12,7 @@ def pick_two(topics):
     return topics[:2]
 
 
-def main(dry_run=False, local_preview=False, budget_mode=False):
+def main(dry_run=False, local_preview=False, budget_mode=False, ideas_only=False):
     """主流程：热词抓取 → 创意生成 → 图像生成 → 打包 → 通知"""
     print("=" * 50)
     print("🚀 自动化 LINE 贴图生成流程开始")
@@ -41,6 +41,23 @@ def main(dry_run=False, local_preview=False, budget_mode=False):
         ideas = make_ideas(selected, mock=dry_run)
         for idx, idea in enumerate(ideas, 1):
             print(f"  创意{idx}: {idea['character']} - {idea['phrases'][:3]}...")
+            if ideas_only:
+                # 详细显示创意内容
+                print(f"    角色描述: {idea.get('character_description', '无')}")
+                print(f"    风格: {idea['style']}")
+                print(f"    色板: {idea['palette']}")
+                print(f"    短语: {idea['phrases']}")
+                print()
+        
+        if ideas_only:
+            print("\n" + "=" * 50)
+            print("💡 创意预览完成！如满意可运行:")
+            if budget_mode:
+                print("  python main.py --budget-mode")
+            else:
+                print("  python main.py")
+            print("=" * 50)
+            return
         
         # 4. 生成图像
         print("\n🎨 步骤3: 生成贴图图像...")
@@ -126,6 +143,7 @@ if __name__ == "__main__":
     parser.add_argument("--dry-run", action="store_true", help="仅生成日志，不请求 API")
     parser.add_argument("--local-preview", action="store_true", help="本地预览模式")
     parser.add_argument("--budget-mode", action="store_true", help="预算模式：只生成1套贴图节省费用")
+    parser.add_argument("--ideas-only", action="store_true", help="仅生成创意不生成图片，完全免费")
     args = parser.parse_args()
     
-    main(dry_run=args.dry_run, local_preview=args.local_preview, budget_mode=args.budget_mode)
+    main(dry_run=args.dry_run, local_preview=args.local_preview, budget_mode=args.budget_mode, ideas_only=args.ideas_only)
