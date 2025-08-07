@@ -24,15 +24,25 @@ def dalle_generate(prompt, size="512x512"):
 
 
 def postprocess_image(img, phrase=None, font_path=None):
-    # 去背景
-    img = remove(img)
-    # 调整尺寸
-    img = img.resize((370, 320))
+    try:
+        # 先调整尺寸减少内存占用
+        img = img.resize((370, 320))
+        # 去背景（添加错误处理）
+        img = remove(img)
+    except Exception as e:
+        print(f"⚠️ 背景移除失败，使用原图: {e}")
+        # 如果背景移除失败，至少确保尺寸正确
+        img = img.resize((370, 320))
+    
     # 加短语文字
     if phrase and font_path:
-        draw = ImageDraw.Draw(img)
-        font = ImageFont.truetype(font_path, 42)
-        draw.text((10, 260), phrase, font=font, fill="#333")
+        try:
+            draw = ImageDraw.Draw(img)
+            font = ImageFont.truetype(font_path, 42)
+            draw.text((10, 260), phrase, font=font, fill="#333")
+        except Exception as e:
+            print(f"⚠️ 文字添加失败: {e}")
+    
     return img
 
 
@@ -44,21 +54,34 @@ def create_stickers(idea, mock=False, font_path=None, out_dir="output"):
         img = Image.new("RGBA", (370, 320), (255, 230, 200, 255))
         stickers = [img.copy() for _ in idea["phrases"]]
     else:
-        for phrase in idea["phrases"]:
-            prompt = f"{idea['character']}, {idea['style']}, palette: {', '.join(idea['palette'])}"
-            img = dalle_generate(prompt)
-            img = postprocess_image(img, phrase=phrase, font_path=font_path)
-            stickers.append(img)
+        for i, phrase in enumerate(idea["phrases"]):
+            try:
+                print(f"    正在生成第 {i+1}/{len(idea['phrases'])} 张贴图...")
+                prompt = f"{idea['character']}, {idea['style']}, palette: {', '.join(idea['palette'])}"
+                img = dalle_generate(prompt)
+                img = postprocess_image(img, phrase=phrase, font_path=font_path)
+                stickers.append(img)
+                # 释放内存
+                del img
+            except Exception as e:
+                print(f"    ❌ 第 {i+1} 张贴图生成失败: {e}")
+                # 使用备用图片
+                backup_img = Image.new("RGBA", (370, 320), (255, 230, 200, 255))
+                stickers.append(backup_img)
+    
     # 保存贴图
     paths = []
     for idx, img in enumerate(stickers, 1):
         path = os.path.join(out_dir, f"{idx:02d}.png")
         img.save(path)
         paths.append(path)
+    
     # 生成主图 main.png（缩略第一张）
     main_path = os.path.join(out_dir, "main.png")
     stickers[0].resize((240, 240)).save(main_path)
+    
     # 生成 tab.png（头像裁剪）
     tab_path = os.path.join(out_dir, "tab.png")
     stickers[0].crop((0, 0, 96, 74)).save(tab_path)
+    
     return paths + [main_path, tab_path]

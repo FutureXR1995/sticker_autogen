@@ -5,7 +5,7 @@ requests>=2.28.0
 openai>=1.0.0
 pillow>=9.0.0
 rembg==2.0.50
-onnxruntime==1.16.3
+onnxruntime-cpu==1.16.3
 pytest>=7.0.0
 flask>=2.0.0
 yagmail>=0.15.0
