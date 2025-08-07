@@ -22,8 +22,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install onnxruntime
-          pip list | grep -E "(rembg|onnxruntime|openai)"
+          pip list | grep -E "(rembg|onnxruntime|openai|pillow)"
 
       - name: 生成贴图
         env:
