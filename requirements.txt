@@ -6,3 +6,6 @@ openai
 pillow
 rembg
 pytest
+onnxruntime
+flask
+yagmail
