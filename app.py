@@ -6,9 +6,10 @@ import threading
 import time
 from datetime import datetime
 from data_scraper import get_hot_topics
-from idea_generator import make_ideas
-from image_generator import create_stickers
-from packager import package_set
+from idea_generator import make_ideas, make_idea
+from image_generator import create_stickers, create_line_stickers
+from packager import package_set, package_line_stickers
+from line_compliance import LineComplianceChecker
 
 app = Flask(__name__)
 app.secret_key = 'sticker_generator_secret_key'
@@ -40,10 +41,23 @@ def load_today_sets():
                 })
     return sorted(sets, key=lambda x: x['created_time'], reverse=True)
 
-def estimate_cost(mode):
-    """估算成本"""
+def estimate_cost(mode, sticker_count=8):
+    """估算成本 - 更新支持LINE贴图定制"""
+    gpt4_cost = 0.15  # 基础创意生成成本
+    dalle_cost_per_sticker = 0.04  # 每张贴图成本
+    
     if mode == 'ideas_only':
-        return {'gpt4': 0.30, 'dalle': 0, 'total': 0.30, 'rmb': 2.1}
+        return {'gpt4': gpt4_cost, 'dalle': 0, 'total': gpt4_cost, 'rmb': round(gpt4_cost * 7, 1)}
+    elif mode == 'custom':
+        dalle_total = dalle_cost_per_sticker * sticker_count
+        total = gpt4_cost + dalle_total
+        return {
+            'gpt4': gpt4_cost, 
+            'dalle': dalle_total, 
+            'total': total, 
+            'rmb': round(total * 7, 1),
+            'sticker_count': sticker_count
+        }
     elif mode == 'budget':
         return {'gpt4': 0.15, 'dalle': 0.32, 'total': 0.47, 'rmb': 3.3}
     else:  # normal
@@ -159,6 +173,150 @@ def generate_images():
 def get_generation_status():
     """获取生成状态"""
     return jsonify(generation_status)
+
+@app.route('/line_custom')
+def line_custom():
+    """LINE贴图定制页面"""
+    return render_template('line_custom.html')
+
+@app.route('/validate_character', methods=['POST'])
+def validate_character():
+    """验证角色设定的合规性"""
+    try:
+        data = request.json
+        character = data.get('character', '')
+        description = data.get('description', '')
+        
+        # 使用LINE合规检查器
+        checker = LineComplianceChecker()
+        result = checker.validate_content_compliance(
+            prompt=f"{character} {description}",
+            character_name=character,
+            description=description
+        )
+        
+        return jsonify({
+            'success': True,
+            'valid': result['valid'],
+            'risk_level': result['risk_level'],
+            'issues': result.get('issues', [])
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/estimate_custom_cost', methods=['POST'])
+def estimate_custom_cost():
+    """估算自定义贴图成本"""
+    try:
+        data = request.json
+        sticker_count = data.get('sticker_count', 8)
+        
+        cost = estimate_cost('custom', sticker_count)
+        return jsonify({'success': True, 'cost': cost})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/generate_custom_stickers', methods=['POST'])
+def generate_custom_stickers():
+    """生成自定义LINE贴图"""
+    if generation_status['running']:
+        return jsonify({'success': False, 'error': '已有生成任务在运行中'})
+    
+    try:
+        data = request.json
+        
+        # 构建创意对象
+        idea = {
+            'character': data.get('character', ''),
+            'character_description': data.get('description', ''),
+            'style': f"{data.get('style', 'kawaii')} style, LINE sticker optimized",
+            'palette': get_style_palette(data.get('style', 'kawaii')),
+            'phrases': data.get('phrases', [])
+        }
+        
+        sticker_count = data.get('sticker_count', 8)
+        style = data.get('style', 'kawaii')
+        
+        # 启动后台生成任务
+        thread = threading.Thread(
+            target=run_line_sticker_generation, 
+            args=(idea, style, sticker_count)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        cost = estimate_cost('custom', sticker_count)
+        return jsonify({
+            'success': True, 
+            'message': '开始生成LINE贴图，请稍候...',
+            'cost': cost
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+def get_style_palette(style):
+    """获取风格对应的色板"""
+    palettes = {
+        "kawaii": ["#FFB6C1", "#87CEEB", "#F0E68C", "#DDA0DD"],
+        "minimal": ["#F5F5F5", "#E0E0E0", "#BDBDBD", "#757575"],
+        "chibi": ["#FFCDD2", "#F8BBD9", "#E1BEE7", "#D1C4E9"],
+        "mascot": ["#FFF8E1", "#F3E5F5", "#E8F5E8", "#E3F2FD"],
+        "emoji": ["#FFE082", "#FFAB91", "#A5D6A7", "#90CAF9"]
+    }
+    return palettes.get(style, palettes["kawaii"])
+
+def run_line_sticker_generation(idea, style, sticker_count):
+    """后台运行LINE贴图生成"""
+    global generation_status
+    
+    try:
+        generation_status['running'] = True
+        generation_status['progress'] = '开始生成LINE贴图...'
+        generation_status['error'] = None
+        
+        # 创建输出目录
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_dir = f"output/line_custom_{idea['character'].replace(' ', '_')}_{timestamp}"
+        
+        generation_status['progress'] = f'正在生成 {sticker_count} 张贴图...'
+        
+        # 生成贴图
+        image_paths = create_line_stickers(
+            idea=idea,
+            mock=False,
+            style=style,
+            sticker_count=sticker_count,
+            out_dir=out_dir
+        )
+        
+        if not image_paths:
+            generation_status['error'] = '贴图生成失败'
+            return
+        
+        generation_status['progress'] = '正在打包为LINE标准格式...'
+        
+        # 打包为LINE格式
+        zip_path, package_info = package_line_stickers(
+            image_paths=image_paths,
+            idea=idea,
+            out_dir="output",
+            sticker_type="static"
+        )
+        
+        if zip_path:
+            generation_status['running'] = False
+            generation_status['progress'] = 'LINE贴图生成完成！'
+            generation_status['results'] = [zip_path]
+        else:
+            generation_status['error'] = package_info.get('error', '打包失败')
+            
+    except Exception as e:
+        generation_status['running'] = False
+        generation_status['error'] = str(e)
+        generation_status['progress'] = f'生成失败: {e}'
 
 @app.route('/download/<set_name>')
 def download_set(set_name):

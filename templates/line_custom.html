@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE贴图AI定制服务</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .feature-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .style-option {
+            cursor: pointer;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 5px;
+            transition: all 0.3s ease;
+        }
+        .style-option:hover, .style-option.selected {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .cost-preview {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .progress-section {
+            background: #d1ecf1;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .phrase-tag {
+            display: inline-block;
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 20px;
+            padding: 5px 12px;
+            margin: 3px;
+            cursor: pointer;
+        }
+        .phrase-tag.selected {
+            background: #2196f3;
+            color: white;
+        }
+        .character-preview {
+            background: #fff3e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .compliance-status {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .compliance-pass {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .compliance-fail {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-magic"></i> LINE贴图AI定制
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">返回主页</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄区域 -->
+    <section class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-4">🎨 专业LINE贴图定制服务</h1>
+            <p class="lead mb-5">AI驱动 · 100%合规 · 一键上传LINE商店</p>
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <div class="card bg-transparent border-light text-white">
+                        <div class="card-body">
+                            <h5><i class="fas fa-shield-alt"></i> 版权安全</h5>
+                            <p>自动检测避免侵权</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-transparent border-light text-white">
+                        <div class="card-body">
+                            <h5><i class="fas fa-check-circle"></i> LINE兼容</h5>
+                            <p>100%符合官方标准</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-transparent border-light text-white">
+                        <div class="card-body">
+                            <h5><i class="fas fa-dollar-sign"></i> 透明定价</h5>
+                            <p>成本明确可控</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要内容 -->
+    <div class="container my-5">
+        <div class="row">
+            <!-- 左侧：定制表单 -->
+            <div class="col-lg-8">
+                <!-- 步骤1：角色设定 -->
+                <div class="card feature-card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-user-edit"></i> 步骤1：设计你的角色</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="characterName" class="form-label">角色名称</label>
+                            <input type="text" class="form-control" id="characterName" 
+                                   placeholder="例如：我家的橘猫、可爱小熊猫" maxlength="20">
+                            <div class="form-text">建议使用简洁有趣的名称，最多20个字符</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="characterDesc" class="form-label">角色描述</label>
+                            <textarea class="form-control" id="characterDesc" rows="3" 
+                                      placeholder="例如：一只爱睡觉的胖橘猫，很温柔，喜欢晒太阳" maxlength="100"></textarea>
+                            <div class="form-text">详细描述角色的外观和性格特点，最多100个字符</div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" onclick="validateCharacter()">
+                            <i class="fas fa-shield-check"></i> 检查合规性
+                        </button>
+                        <div id="complianceResult"></div>
+                    </div>
+                </div>
+
+                <!-- 步骤2：选择风格 -->
+                <div class="card feature-card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fas fa-palette"></i> 步骤2：选择贴图风格</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="styleOptions">
+                            <div class="col-md-6 col-lg-4">
+                                <div class="style-option" data-style="kawaii">
+                                    <div class="text-center">
+                                        <i class="fas fa-heart fa-2x mb-2 text-pink"></i>
+                                        <h6>Kawaii 可爱萌系</h6>
+                                        <small>大眼睛、圆润、色彩柔和</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="style-option" data-style="minimal">
+                                    <div class="text-center">
+                                        <i class="fas fa-circle fa-2x mb-2 text-secondary"></i>
+                                        <h6>Minimal 简约现代</h6>
+                                        <small>线条简洁、色彩简单</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="style-option" data-style="chibi">
+                                    <div class="text-center">
+                                        <i class="fas fa-baby fa-2x mb-2 text-warning"></i>
+                                        <h6>Chibi Q版萌化</h6>
+                                        <small>大头小身、超级可爱</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="style-option" data-style="mascot">
+                                    <div class="text-center">
+                                        <i class="fas fa-star fa-2x mb-2 text-info"></i>
+                                        <h6>Mascot 吉祥物风</h6>
+                                        <small>友好亲切、企业级可用</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="style-option" data-style="emoji">
+                                    <div class="text-center">
+                                        <i class="fas fa-smile fa-2x mb-2 text-success"></i>
+                                        <h6>Emoji 表情包风</h6>
+                                        <small>情感明确、通用易懂</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：数量和短语 -->
+                <div class="card feature-card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0"><i class="fas fa-list-ol"></i> 步骤3：数量和短语设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="stickerCount" class="form-label">贴图数量</label>
+                            <select class="form-select" id="stickerCount" onchange="updateCostPreview()">
+                                <option value="8">8张 - 基础套装</option>
+                                <option value="16">16张 - 标准套装</option>
+                                <option value="24">24张 - 豪华套装</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">常用短语</label>
+                            <div id="phrasePresets" class="mb-2">
+                                <!-- 预设短语标签 -->
+                            </div>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="customPhrase" 
+                                       placeholder="添加自定义短语" maxlength="10">
+                                <button class="btn btn-outline-secondary" onclick="addCustomPhrase()">
+                                    <i class="fas fa-plus"></i> 添加
+                                </button>
+                            </div>
+                            <div class="form-text">选择或添加你想要的短语，将出现在贴图中</div>
+                        </div>
+                        
+                        <div id="selectedPhrases" class="mt-3">
+                            <strong>已选择的短语：</strong>
+                            <div id="phrasesList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤4：生成确认 -->
+                <div class="card feature-card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fas fa-rocket"></i> 步骤4：确认生成</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="characterPreview" class="character-preview">
+                            <h6>生成预览</h6>
+                            <p>请先完成角色设定和风格选择</p>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="button" class="btn btn-danger btn-lg" 
+                                    id="generateBtn" onclick="generateStickers()" disabled>
+                                <i class="fas fa-magic"></i> 开始生成LINE贴图
+                            </button>
+                        </div>
+                        
+                        <!-- 进度显示 -->
+                        <div id="progressSection" style="display:none;" class="mt-4 progress-section">
+                            <h6><i class="fas fa-cog fa-spin"></i> 生成进度</h6>
+                            <div class="progress mb-2">
+                                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     style="width: 0%"></div>
+                            </div>
+                            <p id="progressText" class="mb-0">准备中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：成本预览和说明 -->
+            <div class="col-lg-4">
+                <!-- 成本预览 -->
+                <div class="card feature-card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0"><i class="fas fa-calculator"></i> 成本预览</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="cost-preview" id="costPreview">
+                            <div class="text-center">
+                                <h3 class="text-primary mb-3">¥ <span id="totalCost">--</span></h3>
+                                <p class="mb-2">包含 <span id="costStickerCount">8</span> 张贴图</p>
+                                <small class="text-muted">
+                                    GPT-4: $<span id="gpt4Cost">--</span> + 
+                                    DALL-E: $<span id="dalleCost">--</span>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <h6>价格说明</h6>
+                            <ul class="list-unstyled small">
+                                <li>✅ 包含AI生成费用</li>
+                                <li>✅ 包含LINE格式打包</li>
+                                <li>✅ 包含合规性检查</li>
+                                <li>✅ 包含技术支持</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 功能特色 -->
+                <div class="card feature-card mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0"><i class="fas fa-star"></i> 服务特色</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item border-0">
+                                <i class="fas fa-shield-check text-success"></i>
+                                <strong>版权保护</strong><br>
+                                <small>自动检测避免侵权风险</small>
+                            </div>
+                            <div class="list-group-item border-0">
+                                <i class="fas fa-check-double text-primary"></i>
+                                <strong>LINE兼容</strong><br>
+                                <small>100%符合官方规格要求</small>
+                            </div>
+                            <div class="list-group-item border-0">
+                                <i class="fas fa-magic text-warning"></i>
+                                <strong>AI优化</strong><br>
+                                <small>专业提示词和质量控制</small>
+                            </div>
+                            <div class="list-group-item border-0">
+                                <i class="fas fa-download text-info"></i>
+                                <strong>即时下载</strong><br>
+                                <small>生成完成立即可下载ZIP</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 使用指南 -->
+                <div class="card feature-card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-question-circle"></i> 使用指南</h5>
+                    </div>
+                    <div class="card-body">
+                        <ol class="small">
+                            <li class="mb-2">完成角色设定和合规检查</li>
+                            <li class="mb-2">选择适合的艺术风格</li>
+                            <li class="mb-2">设置贴图数量和短语</li>
+                            <li class="mb-2">确认信息后开始生成</li>
+                            <li class="mb-2">下载ZIP文件上传到<br>
+                                <a href="https://creator.line.me/" target="_blank">LINE Creators Market</a>
+                            </li>
+                        </ol>
+                        <div class="alert alert-warning small mt-3">
+                            <strong>注意：</strong>上传时必须勾选"AI was used"选项
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p>&copy; 2024 LINE贴图AI定制服务. 所有权利保留.</p>
+            <p><small>请确保生成的内容符合LINE Creators Market规范</small></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let selectedStyle = 'kawaii';
+        let selectedPhrases = [];
+        let characterValid = false;
+        
+        // 预设短语
+        const presetPhrases = [
+            '你好', '谢谢', '再见', '加油', '开心', '难过', '生气', '爱你',
+            '早上好', '晚安', '对不起', '没关系', '棒棒', '哈哈', '嗯嗯', '好的',
+            '想你', '累了', '饿了', '困了', '忙碌', '放松', '惊讶', '期待'
+        ];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initStyleSelection();
+            initPhrasePresets();
+            updateCostPreview();
+            
+            // 自动选择第一个风格
+            document.querySelector('.style-option[data-style="kawaii"]').click();
+        });
+
+        // 初始化风格选择
+        function initStyleSelection() {
+            document.querySelectorAll('.style-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // 清除其他选中状态
+                    document.querySelectorAll('.style-option').forEach(o => o.classList.remove('selected'));
+                    // 选中当前项
+                    this.classList.add('selected');
+                    selectedStyle = this.dataset.style;
+                    updatePreview();
+                });
+            });
+        }
+
+        // 初始化预设短语
+        function initPhrasePresets() {
+            const container = document.getElementById('phrasePresets');
+            presetPhrases.forEach(phrase => {
+                const tag = document.createElement('span');
+                tag.className = 'phrase-tag';
+                tag.textContent = phrase;
+                tag.onclick = () => togglePhrase(phrase, tag);
+                container.appendChild(tag);
+            });
+        }
+
+        // 切换短语选择
+        function togglePhrase(phrase, element) {
+            const maxCount = parseInt(document.getElementById('stickerCount').value);
+            
+            if (selectedPhrases.includes(phrase)) {
+                selectedPhrases = selectedPhrases.filter(p => p !== phrase);
+                element.classList.remove('selected');
+            } else if (selectedPhrases.length < maxCount) {
+                selectedPhrases.push(phrase);
+                element.classList.add('selected');
+            } else {
+                alert(`最多只能选择 ${maxCount} 个短语`);
+                return;
+            }
+            
+            updatePhrasesDisplay();
+            updatePreview();
+        }
+
+        // 添加自定义短语
+        function addCustomPhrase() {
+            const input = document.getElementById('customPhrase');
+            const phrase = input.value.trim();
+            const maxCount = parseInt(document.getElementById('stickerCount').value);
+            
+            if (!phrase) return;
+            if (selectedPhrases.includes(phrase)) {
+                alert('短语已存在');
+                return;
+            }
+            if (selectedPhrases.length >= maxCount) {
+                alert(`最多只能选择 ${maxCount} 个短语`);
+                return;
+            }
+            
+            selectedPhrases.push(phrase);
+            input.value = '';
+            updatePhrasesDisplay();
+            updatePreview();
+        }
+
+        // 更新短语显示
+        function updatePhrasesDisplay() {
+            const container = document.getElementById('phrasesList');
+            container.innerHTML = '';
+            
+            selectedPhrases.forEach(phrase => {
+                const tag = document.createElement('span');
+                tag.className = 'badge bg-primary me-1 mb-1';
+                tag.innerHTML = `${phrase} <i class="fas fa-times ms-1" onclick="removePhrase('${phrase}')" style="cursor:pointer;"></i>`;
+                container.appendChild(tag);
+            });
+        }
+
+        // 移除短语
+        function removePhrase(phrase) {
+            selectedPhrases = selectedPhrases.filter(p => p !== phrase);
+            updatePhrasesDisplay();
+            updatePreview();
+            
+            // 更新预设短语的选中状态
+            document.querySelectorAll('.phrase-tag').forEach(tag => {
+                if (tag.textContent === phrase) {
+                    tag.classList.remove('selected');
+                }
+            });
+        }
+
+        // 验证角色合规性
+        async function validateCharacter() {
+            const character = document.getElementById('characterName').value.trim();
+            const description = document.getElementById('characterDesc').value.trim();
+            
+            if (!character || !description) {
+                alert('请填写角色名称和描述');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('complianceResult');
+            resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> 检查中...';
+            
+            try {
+                const response = await fetch('/validate_character', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({character, description})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    characterValid = data.valid;
+                    if (data.valid) {
+                        resultDiv.innerHTML = `
+                            <div class="compliance-status compliance-pass">
+                                <i class="fas fa-check-circle"></i> 
+                                合规检查通过 (风险等级: ${data.risk_level})
+                            </div>`;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="compliance-status compliance-fail">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                合规检查失败<br>
+                                <small>${data.issues.join(', ')}</small>
+                            </div>`;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="alert alert-danger">检查失败: ${data.error}</div>`;
+                }
+                
+                updatePreview();
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-danger">网络错误: ${error.message}</div>`;
+            }
+        }
+
+        // 更新成本预览
+        async function updateCostPreview() {
+            const stickerCount = parseInt(document.getElementById('stickerCount').value);
+            
+            try {
+                const response = await fetch('/estimate_custom_cost', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({sticker_count: stickerCount})
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalCost').textContent = data.cost.rmb;
+                    document.getElementById('costStickerCount').textContent = stickerCount;
+                    document.getElementById('gpt4Cost').textContent = data.cost.gpt4.toFixed(2);
+                    document.getElementById('dalleCost').textContent = data.cost.dalle.toFixed(2);
+                }
+                
+            } catch (error) {
+                console.error('成本估算失败:', error);
+            }
+            
+            // 更新短语限制
+            if (selectedPhrases.length > stickerCount) {
+                selectedPhrases = selectedPhrases.slice(0, stickerCount);
+                updatePhrasesDisplay();
+            }
+        }
+
+        // 更新预览
+        function updatePreview() {
+            const character = document.getElementById('characterName').value.trim();
+            const description = document.getElementById('characterDesc').value.trim();
+            const stickerCount = parseInt(document.getElementById('stickerCount').value);
+            
+            const previewDiv = document.getElementById('characterPreview');
+            
+            if (character && description && characterValid && selectedStyle) {
+                previewDiv.innerHTML = `
+                    <h6>✅ 生成预览</h6>
+                    <p><strong>角色：</strong>${character}</p>
+                    <p><strong>描述：</strong>${description}</p>
+                    <p><strong>风格：</strong>${getStyleName(selectedStyle)}</p>
+                    <p><strong>数量：</strong>${stickerCount}张</p>
+                    <p><strong>短语：</strong>${selectedPhrases.join(', ') || '将使用默认短语'}</p>
+                `;
+                
+                document.getElementById('generateBtn').disabled = false;
+            } else {
+                previewDiv.innerHTML = `
+                    <h6>生成预览</h6>
+                    <p>请完成以下步骤：</p>
+                    <ul class="small">
+                        ${!character ? '<li>输入角色名称</li>' : ''}
+                        ${!description ? '<li>输入角色描述</li>' : ''}
+                        ${!characterValid ? '<li>通过合规性检查</li>' : ''}
+                        ${!selectedStyle ? '<li>选择贴图风格</li>' : ''}
+                    </ul>
+                `;
+                
+                document.getElementById('generateBtn').disabled = true;
+            }
+        }
+
+        // 获取风格名称
+        function getStyleName(style) {
+            const names = {
+                'kawaii': 'Kawaii 可爱萌系',
+                'minimal': 'Minimal 简约现代',
+                'chibi': 'Chibi Q版萌化',
+                'mascot': 'Mascot 吉祥物风',
+                'emoji': 'Emoji 表情包风'
+            };
+            return names[style] || style;
+        }
+
+        // 生成贴图
+        async function generateStickers() {
+            const character = document.getElementById('characterName').value.trim();
+            const description = document.getElementById('characterDesc').value.trim();
+            const stickerCount = parseInt(document.getElementById('stickerCount').value);
+            
+            // 如果没有选择短语，使用默认短语
+            let phrases = selectedPhrases.length > 0 ? selectedPhrases : 
+                          presetPhrases.slice(0, stickerCount);
+            
+            const generateData = {
+                character,
+                description,
+                style: selectedStyle,
+                sticker_count: stickerCount,
+                phrases
+            };
+            
+            // 显示进度区域
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('generateBtn').disabled = true;
+            
+            try {
+                const response = await fetch('/generate_custom_stickers', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(generateData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // 开始轮询状态
+                    pollGenerationStatus();
+                } else {
+                    alert('生成失败: ' + data.error);
+                    resetGeneration();
+                }
+                
+            } catch (error) {
+                alert('网络错误: ' + error.message);
+                resetGeneration();
+            }
+        }
+
+        // 轮询生成状态
+        async function pollGenerationStatus() {
+            try {
+                const response = await fetch('/generation_status');
+                const status = await response.json();
+                
+                document.getElementById('progressText').textContent = status.progress;
+                
+                if (status.running) {
+                    // 继续轮询
+                    setTimeout(pollGenerationStatus, 2000);
+                } else {
+                    // 生成完成
+                    if (status.error) {
+                        alert('生成失败: ' + status.error);
+                    } else {
+                        alert('🎉 LINE贴图生成完成！请在主页下载ZIP文件。');
+                        // 跳转到主页查看结果
+                        window.location.href = '/';
+                    }
+                    resetGeneration();
+                }
+                
+            } catch (error) {
+                console.error('状态查询失败:', error);
+                setTimeout(pollGenerationStatus, 5000);
+            }
+        }
+
+        // 重置生成状态
+        function resetGeneration() {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('generateBtn').disabled = false;
+        }
+
+        // 监听输入变化
+        document.getElementById('characterName').addEventListener('input', updatePreview);
+        document.getElementById('characterDesc').addEventListener('input', updatePreview);
+        document.getElementById('stickerCount').addEventListener('change', function() {
+            updateCostPreview();
+            updatePreview();
+        });
+    </script>
+</body>
+</html>
