@@ -1,0 +1,8 @@
+pytrends
+tweepy
+beautifulsoup4
+requests
+openai
+pillow
+rembg
+pytest
