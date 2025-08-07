@@ -1,22 +1,23 @@
 import os
-import openai
+from openai import OpenAI
 from PIL import Image, ImageDraw, ImageFont
 import base64
 import io
 from rembg import remove
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 
 def dalle_generate(prompt, size="512x512"):
-    openai.api_key = OPENAI_API_KEY
-    response = openai.Image.create(
+    response = client.images.generate(
+        model="dall-e-3",
         prompt=prompt,
         n=1,
-        size=size,
+        size="1024x1024",
         response_format="b64_json"
     )
-    b64_img = response['data'][0]['b64_json']
+    b64_img = response.data[0].b64_json
     img_bytes = base64.b64decode(b64_img)
     img = Image.open(io.BytesIO(img_bytes)).convert("RGBA")
     return img
