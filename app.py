@@ -205,6 +205,15 @@ def validate_character():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/check_api_status')
+def check_api_status():
+    """检查API配置状态"""
+    openai_key = os.getenv("OPENAI_API_KEY")
+    return jsonify({
+        'openai_configured': bool(openai_key and openai_key != "your_openai_api_key_here"),
+        'mock_mode': not bool(openai_key and openai_key != "your_openai_api_key_here")
+    })
+
 @app.route('/estimate_custom_cost', methods=['POST'])
 def estimate_custom_cost():
     """估算自定义贴图成本"""
@@ -223,6 +232,14 @@ def generate_custom_stickers():
     """生成自定义LINE贴图"""
     if generation_status['running']:
         return jsonify({'success': False, 'error': '已有生成任务在运行中'})
+    
+    # 检查是否配置了OpenAI API密钥
+    if not os.getenv("OPENAI_API_KEY"):
+        return jsonify({
+            'success': False, 
+            'error': '未配置OpenAI API密钥，请在.env文件中设置OPENAI_API_KEY',
+            'mock_mode': True
+        })
     
     try:
         data = request.json

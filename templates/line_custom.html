@@ -298,7 +298,7 @@
                                 </small>
                             </div>
                         </div>
-                        <div class="mt-3">
+                        <div class="mt-3" id="costExplanation">
                             <h6>价格说明</h6>
                             <ul class="list-unstyled small">
                                 <li>✅ 包含AI生成费用</li>
@@ -378,6 +378,7 @@
         let selectedStyle = 'kawaii';
         let selectedPhrases = [];
         let characterValid = false;
+        let apiConfigured = false;
         
         // 预设短语
         const presetPhrases = [
@@ -388,6 +389,7 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
+            checkApiStatus();
             initStyleSelection();
             initPhrasePresets();
             updateCostPreview();
@@ -395,6 +397,77 @@
             // 自动选择第一个风格
             document.querySelector('.style-option[data-style="kawaii"]').click();
         });
+
+        // 检查API配置状态
+        async function checkApiStatus() {
+            try {
+                const response = await fetch('/check_api_status');
+                const status = await response.json();
+                
+                apiConfigured = status.openai_configured;
+                
+                if (!apiConfigured) {
+                    // 显示API配置警告
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <strong><i class="fas fa-exclamation-triangle"></i> API配置提醒：</strong>
+                        检测到未配置OpenAI API密钥，当前处于演示模式。
+                        <br><small>要生成真实贴图，请在.env文件中设置您的OPENAI_API_KEY</small>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    
+                    // 插入到页面顶部
+                    const container = document.querySelector('.container');
+                    container.insertBefore(alertDiv, container.firstChild);
+                    
+                    // 更新生成按钮文案
+                    const generateBtn = document.getElementById('generateBtn');
+                    generateBtn.innerHTML = '<i class="fas fa-magic"></i> 演示模式：生成预览贴图';
+                    
+                    // 更新成本说明
+                    const costExplanation = document.getElementById('costExplanation');
+                    costExplanation.innerHTML = `
+                        <h6>演示模式说明</h6>
+                        <ul class="list-unstyled small">
+                            <li>🎭 生成预览图片（非AI生成）</li>
+                            <li>📦 包含LINE格式打包</li>
+                            <li>🛡️ 包含合规性检查</li>
+                            <li>⚠️ 需要API密钥才能生成真实贴图</li>
+                        </ul>
+                        <div class="alert alert-info small mt-2">
+                            <strong>如何配置API：</strong><br>
+                            1. 复制.env.example为.env<br>
+                            2. 在.env中设置OPENAI_API_KEY<br>
+                            3. 重启应用即可使用真实AI
+                        </div>
+                    `;
+                    
+                    // 更新成本显示
+                    document.getElementById('totalCost').textContent = '免费';
+                    document.getElementById('gpt4Cost').textContent = '0.00';
+                    document.getElementById('dalleCost').textContent = '0.00';
+                } else {
+                    // API已配置，显示成功提示
+                    console.log('✅ OpenAI API已配置，可以生成真实贴图');
+                    
+                    // 显示成功配置的提示
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = `
+                        <strong><i class="fas fa-check-circle"></i> API已配置：</strong>
+                        OpenAI API已成功配置，可以生成真实的AI贴图！
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    
+                    const container = document.querySelector('.container');
+                    container.insertBefore(alertDiv, container.firstChild);
+                }
+                
+            } catch (error) {
+                console.error('API状态检查失败:', error);
+            }
+        }
 
         // 初始化风格选择
         function initStyleSelection() {
