@@ -12,7 +12,7 @@ def pick_two(topics):
     return topics[:2]
 
 
-def main(dry_run=False, local_preview=False):
+def main(dry_run=False, local_preview=False, budget_mode=False):
     """主流程：热词抓取 → 创意生成 → 图像生成 → 打包 → 通知"""
     print("=" * 50)
     print("🚀 自动化 LINE 贴图生成流程开始")
@@ -28,7 +28,12 @@ def main(dry_run=False, local_preview=False):
         print(f"✅ 获取到 {len(topics)} 个热词: {topics[:5]}...")
         
         # 2. 选取热词
-        selected = pick_two(topics)
+        if budget_mode:
+            # 预算模式：只生成1套贴图
+            selected = topics[:1]
+            print(f"💰 预算模式：只生成1套贴图以节省费用")
+        else:
+            selected = pick_two(topics)
         print(f"🎯 选取用于生成的热词: {selected}")
         
         # 3. 生成创意
@@ -120,6 +125,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="自动化 LINE 贴图生成主流程")
     parser.add_argument("--dry-run", action="store_true", help="仅生成日志，不请求 API")
     parser.add_argument("--local-preview", action="store_true", help="本地预览模式")
+    parser.add_argument("--budget-mode", action="store_true", help="预算模式：只生成1套贴图节省费用")
     args = parser.parse_args()
     
-    main(dry_run=args.dry_run, local_preview=args.local_preview)
+    main(dry_run=args.dry_run, local_preview=args.local_preview, budget_mode=args.budget_mode)
